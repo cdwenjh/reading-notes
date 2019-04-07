@@ -34,13 +34,11 @@ Money plus(Money addend){
   Expression sum = five.plus()5;//两个Money对象和表达式
   Bank bank = new Bank();
   Money reduced = bank.reduce(sum,"USD");
-	assertEquals(Money.dollar(10),reduced);  
+  assertEquals(Money.dollar(10),reduced);  
 }
 ```
 
 为了使代码通过编译增加如下：
-
-s
 
 Expression
 
@@ -139,7 +137,7 @@ Money reduce(Expression source,String to){
 - 强制类型转换。这段代码应该对任何表达式都适用。
 - 公共域以及对它的两级引用。
 
-首先，可可以把方法的主体移至Sum类且去掉某些可见域。
+首先，可以把方法的主体移至Sum类且去掉某些可见域。
 
 Bank
 
