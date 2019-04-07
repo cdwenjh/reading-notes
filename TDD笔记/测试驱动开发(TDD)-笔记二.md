@@ -124,9 +124,178 @@ public void testReduceSum(){
 }
 ```
 
-1
+Bank
+
+```java
+Money reduce(Expression source,String to){
+  Sum sum = (Sum) source;
+  int amount = sum.augend + sum.addend.amount;
+  return new Money(amount,to);
+}
+```
+
+这立刻使两方面：
+
+- 强制类型转换。这段代码应该对任何表达式都适用。
+- 公共域以及对它的两级引用。
+
+首先，可可以把方法的主体移至Sum类且去掉某些可见域。
+
+Bank
+
+```java
+Money reduce(Expression source,String to){
+  Sum sum = (Sum) source;
+  return Sum.reduce(to);
+}
+```
+
+Sum
+
+```java
+public Money reduce(String to){
+  int amount = augend.amount + addend.amount;
+  return new Money(amount,to);
+}
+```
+
+> Task
+>
+> 1. **当瑞士法郎与美元的兑换率为2:1时，5美元+10瑞士法郎=10美元**
+> 2. **5美元+5美元=10美元**
+> 3. **从5美元+5美元返回一个Money对象**
+> 4. **Bank.reduce(Money)**
+
+测试Bank.reduce():
+
+```java
+public void testReduceMoney(){
+  Bank bank = new Bank;
+  Money result = bank.reduce(Money.dollar(1),"USD");
+  assertEquals(Money.dollar(1),result);
+}
+```
+
+Bank
+
+```java
+Money reduce(Expression source,String to){
+  if(source instanceof Money) return (Money)source;
+  Sum sum = (Sum) source;
+  return sum.reduce(to);
+}
+```
+
+由于Sum实现了reduce(String),所以如果Money也实现了它，name我们就可以把它添加到Expression接口中：
+
+Bank
+
+```java
+Money reduce(Expression source,String to){
+  if(source instanceof Money) 
+    return (Money)source.reduce(to);
+  Sum sum = (Sum) source;
+  return sum.reduce(to);
+}
+```
+
+Money
+
+```java
+public Money reduce(String to){
+  return this;
+}
+```
+
+将reduce(String)添加到Expression接口中就能消除所有强制类型转换：
+
+Expression
+
+`Money reduce(String to);`
+
+Bank
+
+```java
+Money reduce(Expression source,String to){
+  return source.reduce(to);
+}
+```
 
 
+
+> Task
+>
+> 1. **当瑞士法郎与美元的兑换率为2:1时，5美元+10瑞士法郎=10美元**
+> 2. **5美元+5美元=10美元**
+> 3. **从5美元+5美元返回一个Money对象**
+> 4. ~~**Bank.reduce(Money)**~~
+> 5. **带换算的Reduce Money**
+> 6. **Reduce(Bank,Stirng)**
+> 7. 
+
+两法郎，得到一美元：
+
+```java
+public void testRedeuceMoneyDifferentCurrency(){
+  Bank bank = new Bank();
+  bank.addRate("CHF","USD",2);
+  Money result = bank.reduce(Money.franc(2),"USD");
+  assertEquals(Money.dollar(1),result);
+}
+```
+
+兑换率与Bank类相关，将Bank作为一个参数传递给Expression.reduce()：
+
+Bank
+
+```java
+Money reduce(Expression source,String to){
+  return source.reduce(this,to);
+}
+```
+
+Expression
+
+`Money reduce(Bank bank,Stirng to);`
+
+Sum
+
+```java
+public Money reduce(Bank bank,String to){
+  int amount = augend.amount + addend.amount;
+  return new Money(amount,to);
+}
+```
+
+Money
+
+```java
+public Money reduce(Bank bank,String to){
+  int rate = (currency.equals("CHF") && to.equals("USD")) ? 2 : 1;
+  return new Money(amount / rate,to);
+}
+```
+
+计算Bank中的兑换率：
+
+Bank
+
+```java
+int rate(String from,String to){
+  return (from.equals("CHF") && to.equals("USD")) ? 2 : 1;
+}
+```
+
+向bank询问正确的兑换率：
+
+Money
+
+```java
+public Money reduce(Bank bank,String to){
+  int rate = bank.rate(currency, to);
+  return new Money(amount / rate, to);
+}
+```
 
 
 
@@ -146,12 +315,3 @@ public void testReduceSum(){
 
 --------
 
-
-
-
-
-
-
-
-
-o
